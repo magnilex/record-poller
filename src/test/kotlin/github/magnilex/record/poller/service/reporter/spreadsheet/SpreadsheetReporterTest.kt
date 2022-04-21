@@ -27,6 +27,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
+import java.util.function.Supplier
 
 private const val SPREAD_SHEET_ID = "spreadSheetId"
 
@@ -35,7 +36,7 @@ internal class SpreadsheetReporterTest {
   @Mock
   private lateinit var environmentVariableReader: EnvironmentVariableReader
   @Mock
-  private lateinit var spreadSheetClientSupplier: SpreadSheetClientSupplier
+  private lateinit var spreadSheetClientSupplier: Supplier<Sheets>
   private lateinit var client: Sheets
 
   private lateinit var spreadsheetReporter: SpreadsheetReporter
@@ -53,7 +54,7 @@ internal class SpreadsheetReporterTest {
             mock(HttpRequestInitializer::class.java)))
             .setApplicationName("Unit test")
             .build()
-    `when`(spreadSheetClientSupplier.getClient()).thenReturn(client)
+    `when`(spreadSheetClientSupplier.get()).thenReturn(client)
 
     doNothing().`when`(spreadsheetReporter).write(any(), any(), any())
   }
@@ -79,8 +80,8 @@ fun main() {
   SpreadsheetReporter(EnvironmentVariableReader(), CredentialJsonSpreadSheetClientSupplier()).report(listOf(record));
 }
 
-class CredentialJsonSpreadSheetClientSupplier : SpreadSheetClientSupplier {
-  override fun getClient(): Sheets {
+class CredentialJsonSpreadSheetClientSupplier : Supplier<Sheets> {
+  override fun get(): Sheets {
     val credentials = GoogleCredentials.fromStream(System.getenv("credentials").byteInputStream()).createScoped(listOf(SPREADSHEETS))
     return Sheets.Builder(newTrustedTransport(), getDefaultInstance(), HttpCredentialsAdapter(credentials))
             .setApplicationName("Test reporter")

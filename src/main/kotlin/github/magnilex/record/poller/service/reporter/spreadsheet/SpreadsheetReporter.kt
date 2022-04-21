@@ -5,12 +5,13 @@ import com.google.api.services.sheets.v4.model.ValueRange
 import github.magnilex.record.poller.model.Record
 import github.magnilex.record.poller.service.EnvironmentVariableReader
 import github.magnilex.record.poller.service.reporter.Reporter
+import java.util.function.Supplier
 
 class SpreadsheetReporter(
         private val environmentVariableReader: EnvironmentVariableReader,
-        private val spreadSheetClientSupplier: SpreadSheetClientSupplier) : Reporter {
+        private val spreadSheetClientSupplier: Supplier<Sheets>) : Reporter {
   override fun report(records: List<Record>) {
-    write(records, spreadSheetClientSupplier.getClient())
+    write(records, spreadSheetClientSupplier.get())
   }
 
   private fun write(records: List<Record>, client: Sheets) {
